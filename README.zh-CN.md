@@ -1,4 +1,15 @@
+<p align="center">
+  <img src="assets/xihe-readme-banner.jpg" alt="xihe-agent" width="100%">
+</p>
+
 # xihe-agent
+
+<p align="center">
+  <img alt="License: MPL-2.0" src="https://img.shields.io/badge/license-MPL--2.0-blue">
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue">
+  <img alt="OpenAI-compatible" src="https://img.shields.io/badge/OpenAI-compatible-brightgreen">
+  <img alt="Platforms" src="https://img.shields.io/badge/platforms-CLI%20%E2%80%A2%20WeCom%20%E2%80%A2%20Feishu%20%E2%80%A2%20Desktop-orange">
+</p>
 
 *羲和,《楚辞》中为太阳驾车的神 —— 昔驭日,今驭工具。*
 
@@ -50,6 +61,18 @@
 **🔌 任意 OpenAI 兼容模型。** 智谱、火山、DeepSeek、OpenAI、内网网关,换个 `base_url` 即可。`/model` 自动发现端点提供的全部模型;常见型号的上下文长度按内置目录解析,压缩阈值不用手配。
 
 还有更多:17 个工具集、运行时创建技能、任务委派、SQLite 会话与崩溃恢复、长期记忆、定时任务、能力商店、多实例并行 —— 见下文。
+
+## 与典型单入口 agent 框架的对比
+
+| 维度 | xihe-agent | 典型单入口 agent |
+| --- | --- | --- |
+| 入口形态 | CLI + 企微/飞书网关 + HTTP/WS 服务 + 桌面应用,共享同一个核心 | 通常只有一种(CLI 或网页) |
+| 操作已登录的内网系统 | CDP 驱动真实 Chrome,SSO 登录态跨重启持久保留 | 通常不支持 |
+| 模型提供方 | 任意 OpenAI 兼容端点(智谱、火山、DeepSeek、OpenAI、内网网关) | 常绑定单一厂商 |
+| 危险操作闸门 | 39 条模式 + 高危参数表 + LLM 判定,三端一致确认体验 | 各不相同 |
+| 长期记忆 | 四个入口共享,按 agent 命名空间隔离 | 往往仅限单会话 |
+| 业务知识库 | `.biz_kbs` 活知识库,原始材料仅追加可溯源 | 通常没有 |
+| 专家 agent | YAML 定义,可配独立模型/工具/技能 | 通常只有临时子代理 |
 
 ## 60 秒上手
 

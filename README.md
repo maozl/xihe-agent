@@ -1,4 +1,15 @@
+<p align="center">
+  <img src="assets/xihe-readme-banner.jpg" alt="xihe-agent" width="100%">
+</p>
+
 # xihe-agent
+
+<p align="center">
+  <img alt="License: MPL-2.0" src="https://img.shields.io/badge/license-MPL--2.0-blue">
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue">
+  <img alt="OpenAI-compatible" src="https://img.shields.io/badge/OpenAI-compatible-brightgreen">
+  <img alt="Platforms" src="https://img.shields.io/badge/platforms-CLI%20%E2%80%A2%20WeCom%20%E2%80%A2%20Feishu%20%E2%80%A2%20Desktop-orange">
+</p>
 
 *Xihé (羲和) — the sun's charioteer in the Chu Ci. The one that drives the sun's journey now drives your tools.*
 
@@ -51,6 +62,18 @@ Point it at any OpenAI-compatible endpoint (Zhipu, Volcano Ark, DeepSeek, OpenAI
 **🔌 Any OpenAI-compatible model.** Zhipu, Volcano Ark, DeepSeek, OpenAI or an internal gateway — switching is a `base_url` change. `/model` auto-discovers the models your endpoint offers; context lengths for common families resolve from a built-in catalog, so compression thresholds need no hand-tuning.
 
 And more: 17 toolsets, runtime skill creation, task delegation, SQLite sessions with crash recovery, long-term memory, cron jobs, a capability store, side-by-side instances — see below.
+
+## xihe vs. a typical agent framework
+
+| Dimension | xihe-agent | Typical single-entry agent |
+| --- | --- | --- |
+| Entry points | CLI + WeCom/Feishu gateway + HTTP/WS service + desktop app, one shared core | Usually one (CLI or web) |
+| Operating logged-in internal systems | Real Chrome over CDP; SSO login persists across restarts | Usually not supported |
+| Model provider | Any OpenAI-compatible endpoint (Zhipu, Volcano Ark, DeepSeek, OpenAI, internal gateway) | Often tied to one provider |
+| Dangerous-operation gate | 39 patterns + argument tables + LLM judge, one consistent UX across all surfaces | Varies |
+| Long-term memory | Shared across all four entry points, namespaced per agent | Often per-session only |
+| Business knowledge | `.biz_kbs` living knowledge base, append-only raw sources | Usually none |
+| Specialists | YAML-defined specialist agents with their own model/tools/skills | Usually ad-hoc subagents only |
 
 ## 60-second start
 
