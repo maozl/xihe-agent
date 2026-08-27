@@ -1,0 +1,219 @@
+# =============================================================================
+# xihe-agent 配置模板（仅供参考，不参与加载）
+# -----------------------------------------------------------------------------
+# 这是配置 *结构* 的参考。xihe启动时只读一个 config.yaml：
+#   - 由 `--config <path>` 指定（最高优先），或
+#   - 默认 ~/.xihe-agent/config.yaml
+# 所有配置项（含凭据）都写在这一个文件里，字面值 —— 不再支持 ${VAR} 展开、
+# 不再读 .env、不再有环境变量覆盖。把本文件复制到 ~/.xihe-agent/config.yaml
+# （或你的实例目录）后按需修改即可。
+# =============================================================================
+
+# 数据根（仅 `--config <instance>.yaml` 实例配置里写才生效）---------------------
+# agent_home: ~/xihe-instance   # 该实例的数据根：sessions.db / agent.log / browser /
+#                               # skills / cron / .biz_kbs 全在这下面。相对路径相对
+#                               # 仓库根解析。不写则默认 ~/.xihe-agent。
+
+# 主模型 / 视觉模型 / 循环参数 / 主 agent 名单 ----------------------------------
+model: glm-5.2-zp            # 主模型（默认非多模态）
+base_url: https://api.openai.com/v1   # OpenAI 兼容端点
+api_key: ""                  # 必填：留空则 xihe chat / xihe gateway 拒绝启动
+toolsets: ["files", "terminal", "agent", "external_agents", "communication", "memory", "http", "mcp", "kbs"]
+                            # 主 agent 的 toolsets（与专家 agents/*.yaml 同一套
+                            # 语义：不写或 [] = 不加载，["*"] = 全量，
+                            # mcp = 全部 MCP 服务器，mcp-<server> = 单服务器；
+                            # 可用名：web/files(写)/terminal/dev_tool/http/memory(写)/
+                            # communication/media/agent/external_agents/skills(管理)/
+                            # scheduler/mcp/ssh/kbs(初始化)/meta(工具自扩展)。
+                            # 读面（read_file/search_files/directory_tree、skills_list/
+                            # skill_view、memory 读、kbs_search、todo、model_info）经
+                            # base 组自动并入每个非空名单，不用配。推荐主 agent 只当
+                            # 协调者，专业工具交给专家 agent / delegate_task
+skills: []                # 技能索引：不写 = 不注入；["*"] = 全部；或列技能名
+vision_model:                # 填一个多模态模型（如 gpt-4o）才启用 vision_analyze
+max_iterations: 30           # 单轮最大工具调用迭代数
+max_completion_tokens: 8192  # 单次模型回复的输出 token 上限（默认 8192）。
+                             # 长报告/长代码单轮写不完会被拦腰截断——按需调大
+compression_threshold: 0.30  # 历史超过模型上下文窗口的比例时触发压缩
+language: zh                 # 思考/回复语言引导：zh | en | auto（不引导，模型自选）。
+                             # 作用于主/子/专家 agent 的系统提示词，zh 时 external_agent
+                             # 给 claude 的 prompt 附带"思考用中文"指令
+
+# 专家 agent 委派开关 ------------------------------------------------------------
+# 默认关闭（普通用户不需要专家委派）。关闭时 agents/*.yaml 仍可编辑（桌面端
+# /specialists 可见），但 run_*_agent 派发工具不注册、提示词 roster 层不注入。
+specialists:
+  enabled: false              # true = 主 agent 可把任务委派给专家 agent
+
+# 会话上下文加载控制（xihe.md / AGENTS.md 始终加载）----------------------------
+session:
+  load_claude_md: true       # 是否把工作目录的 CLAUDE.md 注入系统提示
+  load_cursorrules: true     # 是否加载 .cursorrules
+
+# 业务知识库（.biz_kbs 协议；可选）---------------------------------------------
+# 根目录固定为 <agent_home>/.biz_kbs —— 跟随数据根，不单独配路径。
+# kbs_init 在此 stamp 空脚手架；kbs_status / kbs_search 读写这里。
+kbs:
+  enabled: false              # 关闭则 kbs_* 工具不暴露、不注入 kbs 前导
+
+# 模型目录（context_length 用于压缩阈值计算）----------------------------------
+# 解析优先级：本段 context_length > 内置 known-models 表（core/model_catalog.py，
+# 覆盖 glm/doubao/deepseek/gpt 常见型号）> 模型名里的 -32k/-128k 后缀 > 128k 默认。
+# /model 与 model_info 还会从 base_url 的 GET /models 自动发现模型 ID（无需在本段
+# 手抄型号名；端点不提供该接口则静默为空）。新型号先不登记也行，压缩偏保守；
+# 数值不准时在本段补一条即可，永远优先于内置表。
+models:
+  glm-5.2-zp:
+    context_length: 128000
+    description: 智谱 GLM-5.2
+
+# 平台适配器配置（gateway 模式用；每个平台一个 section）------------------------
+# 凭据直接写字面值（单源 config.yaml，不再走 ${VAR} / .env）。
+# 不写时 gateway 启动会明确报缺哪些字段；占位假值只会变成连接失败，别留。
+# platforms:
+#   wecom:
+#     bot_id: "your-wecom-bot-id"
+#     secret: "your-wecom-secret"
+#     ws_url: "wss://your-wecom-ws-url"
+#   # feishu:
+#   #   app_id: "..."
+#   #   app_secret: "..."
+#   #   verification_token: "..."
+
+# MCP 服务器（按名注册；type 通常为 streamable-http / stdio）-------------------
+# 启动时会逐一连接这里配置的服务器——占位地址每次启动都报连接失败，
+# 填真实地址后再取消注释。
+# mcp_servers:
+#   example-http:
+#     type: streamable-http
+#     url: "https://example.invalid/mcp"
+#     timeout: 120
+
+# 能力商店（可选；桌面「商店」页浏览/安装 skill 与 MCP 的目录源）----------------
+# url 指向一个静态 index.json（http(s) 或本地路径）。商店安装的 MCP 写
+# ~/.xihe-agent/store/ 台账并与上面手写的 mcp_servers 合并（同名手写优先）；
+# 商店不程序改写本文件。
+# store:
+#   sources:
+#     - name: internal
+#       url: https://内网静态服务/xihe-store/index.json
+#     - name: dev-local                # 本地目录源（开发/共享盘）
+#       url: E:/xihe-store/index.json
+
+# 辅助 LLM（工具内部调用：视觉、压缩、标题；与主模型可不同）---------------------
+auxiliary:
+  vision:
+    model: ""               # 留空则回退 vision_model / 主模型
+  image_gen:
+    enabled: false          # 关闭则 image_generation 工具不暴露
+  tts:
+    enabled: false          # 关闭则语音合成相关工具不暴露
+
+# 联网搜索 key（留空 → 对应工具被 check_fn 丢弃，不暴露）-----------------------
+web:
+  tavily:
+    api_key: ""
+  serpapi:
+    api_key: ""
+  bing:
+    api_key: ""
+  firecrawl:
+    api_key: ""
+
+# 浏览器工具 ------------------------------------------------------------------
+browser:
+  cdp_port: 9222            # 复用系统 Chrome/Edge 的 CDP 端口
+
+# 危险操作审批 ----------------------------------------------------------------
+# 覆盖面：terminal 危险命令（rm/Remove-Item/rd /s/格式化/回收站/提权等
+# 39 条模式，Unix + Windows 删除类都有）+ 高危工具参数
+# （ssh_exec、process stop、browser_logout wipe_profile、skill_manage 删除、
+#  kbs_init force、cronjob 删除、node_version 安装卸载）。CLI/桌面/企微等
+# gateway 三种模式都会弹确认（桌面审批卡 / 回复 y|n/a）。
+#
+# 决策顺序：mode auto 全放行 > deny 规则即拒不弹窗 > allow 规则（含会话
+# 记忆）放行 > ask 规则弹审批 > 危险判定弹审批。"批准且不再询问"（桌面
+# 第三按钮 / 回复 a）记入审批记忆，维度随场景：普通对话按会话、桌面工作
+# 空间按目录（同空间所有对话共享）、定时任务按任务名（同任务所有运行
+# 共享）——同一危险类或同一 ask 规则该维度内不再问；记忆落盘
+# agent_home/approvals/，默认保留 30 天（memory_days 可调，非法值回落
+# 默认），重启不丢；要更宽的 glob 放行用下面的 allow。
+# 定时任务的审批卡投到任务的 deliver 目标聊天（回复 y/n/a 即可，回 "a"
+# 后该任务以后静默放行）；deliver=local 或无平台通道的任务维持无人值守
+# 即拒，不空等超时。
+# 规则语法 "工具名(glob)"，glob 匹配的判定文本：terminal/ssh_exec 取命令
+# 原文，write_file/patch 取文件路径，其余工具取 "action 关键参数"
+# （如 "install 20"）；无括号 = 整个工具。
+approvals:
+  mode: manual              # manual = 危险操作需人工确认 | auto = 全部放行
+  timeout: 300              # 等待答复的秒数，超时按 timeout_action 处理
+  timeout_action: deny      # 超时后 deny = 拒绝 | allow = 放行
+                            # 无人值守场景（cron 定时任务跑危险命令）没有确认
+                            # 通道，直接拒绝；要自动跑就设 mode: auto
+  llm_judge: true           # 正则漏网的 terminal 命令再用辅助模型语义判定
+                            # 一次（命令含删除/破坏动词或触系统区域才判，
+                            # 判定失败放行不卡流程）。换判定模型配
+                            # auxiliary.approval_judge.model（默认主模型）
+  memory_days: 30           # "批准且不再询问"记忆落盘 agent_home/approvals/
+                            # 的保留天数（活跃会话随使用滑动续期；
+                            # 非法值回落 30）
+  deny: []                  # 命中即拒不弹窗的硬闸门（优先级最高），例：
+                            #   - "terminal(*mkfs*)"       # 命令里出现 mkfs
+                            #   - "ssh_exec"               # 整个远程执行工具
+  ask:                      # 命中即弹人工确认的工具（任意工具，加行即拦，
+                            # 无需改代码）。"批准且不再询问"后同规则本会话免问：
+    - write_file            #   每次会话首写确认一次，之后放行
+    - patch                 #   定向修改与整文件写分开授权
+  allow: []                 # 命中即放行的持久白名单，例：
+                            #   - "terminal(rm -rf /tmp/*)"
+                            #   - "node_version(install *)"
+                            #   - "write_file(src/**)"     # carve-out：ask 圈了
+                            #                             # write_file 时 src/ 免问
+
+# 外置 agent 接入（claude / codex 作为 xihe 的 external_agent 工具）-----------
+external_agents:
+  claude:
+    command: claude         # 可执行文件名或绝对路径
+    api_key: ""             # claude 专用 key（留空则回退主 api_key）
+    base_url: ""            # 留空则回退主 base_url
+    extra_args: []          # 原样追加到 claude 参数（--resume 之前），例如：
+                            # --settings <json>、--disallowedTools …
+    max_tokens: 0           # >0 → 注入 CLAUDE_CODE_MAX_OUTPUT_TOKENS 环境变量，
+                            # 抬高单轮回复的输出上限；0/不写 = claude 自身默认
+    debug: false            # true → 完整 prompt + NDJSON 流量记到
+                            # agent_home/external-agent-trace.log（排查用，平时关）
+    # permission_mode: bypassPermissions   # claude --permission-mode 值
+  codex:
+    command: codex          # codex CLI（0.146+）
+    api_key: ""             # 注入为 CODEX_API_KEY（留空则回退主 api_key）
+    base_url: ""            # 留空 = provider 完全交给 ~/.codex/config.toml
+                            # （不回退主 base_url——避免悄悄改写 config.toml
+                            # 选好的 provider）。设置后 xihe 经 exec -c 内联
+                            # 定义 provider（id 固定 xihe，env_key=CODEX_API_KEY）
+                            # 覆盖该轮的 provider 选择；值原样透传（codex 在
+                            # 其后拼 /responses 或 /chat/completions）。
+    wire_api: responses     # responses | chat，仅 base_url 设置时生效；默认
+                            # responses（内部 litellm 网关实测可用）
+    max_tokens: 0           # >0 → exec -c model_max_output_tokens=<n>。注意：实测
+                            # codex 0.146 对自定义 provider 不应用该键（网关按自身
+                            # 默认上限截断，约 8k）——生效与否取决于 codex 版本；
+                            # 不写 = 不干预
+    extra_args: []          # 原样追加到 exec 参数（resume/“-” 之前）的逃生口，
+                            # 例如 ['-c', 'model_reasoning_effort=high']、
+                            # --ephemeral、--add-dir <dir>；-c 值按 TOML 解析，
+                            # 普通字符串可不加引号
+    debug: false
+    # permission_mode: workspace-write     # codex 原生枚举：read-only |
+    #                                      # workspace-write | danger-full-access；
+    #                                      # 另接受 bypassPermissions 作跨引擎
+    #                                      # 别名 → --dangerously-bypass-approvals-and-sandbox
+    # model: ""              # 留空则用 ~/.codex/config.toml 的 model
+
+# CLI 显示 --------------------------------------------------------------------
+cli:
+  no_ansi: false            # true → 强制单色输出
+  force_ansi: false         # true → 强制彩色输出
+
+# 日志脱敏 --------------------------------------------------------------------
+redact:
+  enabled: true             # 是否在日志里脱敏 key/token/secret

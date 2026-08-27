@@ -1,0 +1,22 @@
+# --- repo-local backups; live data root is ~/.xihe-agent/ ---
+/.xihe-agent/
+/.biz_kbs/
+
+# --- IDE ---
+.idea/
+
+# --- desktop/ (Electron; separate Node toolchain) ---
+desktop/node_modules/
+desktop/out/
+desktop/dist/
+
+# --- misc ---
+*.log
+.DS_Store
+*.egg-info/
+/xihe-store/
+
+# --- real-LLM routing eval artifacts (tests/test_routing_eval.py) ---
+/tests/evals/
+__pycache__/
+*.pyc

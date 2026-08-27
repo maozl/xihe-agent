@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens — one block per appearance. :root carries the dark defaults
+(the pre-theme hardcoded look); each block below overrides the tokens it
+wants to change. Adding an appearance = add one html[data-theme='<name>']
+block here + expose the value in the appearance picker; nothing else in the
+app knows about individual themes. App.tsx resolves the persisted desktop
+theme (nativeTheme drives prefers-color-scheme in system mode) and writes
+the name onto <html data-theme>. */
+:root {
+  --c-app: 10 10 10;        /* page background (was neutral-950) */
+  --c-panel: 23 23 23;      /* inset panels/cards (neutral-900) */
+  --c-elevated: 38 38 38;   /* controls/inputs/chips (neutral-800) */
+  --c-strong: 64 64 64;     /* selected/hover/track fills (neutral-700) */
+  --c-contrast: 64 64 64;   /* fixed dark surface for white/light text */
+  --c-ink: 235 235 235;     /* primary text (neutral-100/200) */
+  --c-ink-2: 212 212 212;   /* secondary body (neutral-300) */
+  --c-ink-3: 163 163 163;   /* labels/tertiary (neutral-400) */
+  --c-ink-4: 115 115 115;   /* muted/faint (neutral-500/600) */
+  --c-line: 38 38 38;       /* subtle borders (neutral-800) */
+  --c-line-strong: 64 64 64;/* input/badge borders (neutral-700) */
+  --c-scrollbar: 42 42 42;
+  --c-brand: 109 140 255;   /* periwinkle — light theme darkens it (see below) */
+  --c-accent: 125 211 252;  /* sky accent (workspace/path marks) — light darkens */
+  /* Status hues: the -300/-400 shades used across the UI are tuned for dark
+     surfaces, so they are tokens too — each theme supplies readable shades. */
+  --c-success: 52 211 153;  /* emerald-400 */
+  --c-warning: 252 211 77;  /* amber-300 */
+  --c-danger: 251 113 133;  /* rose-400 */
+}
+
+/* Light palette: gray-white canvas + brighter cards (layering mirrors dark —
+   raised surfaces lighter), muted text darkened so hints stay readable
+   (~3.5:1 instead of ~2.6:1), brand darkened a step so white-on-brand
+   buttons and brand text pass AA, status hues darkened to -600/-700. */
+html[data-theme='light'] {
+  --c-app: 245 246 248;
+  --c-panel: 252 252 253;
+  --c-elevated: 230 232 236;
+  --c-strong: 217 219 225;
+  --c-contrast: 64 64 64;
+  --c-ink: 24 27 32;
+  --c-ink-2: 67 71 79;
+  --c-ink-3: 104 109 118;
+  --c-ink-4: 142 146 154;
+  --c-line: 226 228 233;
+  --c-line-strong: 205 208 215;
+  --c-scrollbar: 199 202 209;
+  --c-brand: 76 99 232;
+  --c-accent: 3 105 161;
+  --c-success: 4 120 87;
+  --c-warning: 180 83 9;
+  --c-danger: 190 18 60;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+}
+
+/* thin scrollbars in the shell's theme */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-scrollbar));
+  border-radius: 4px;
+}
