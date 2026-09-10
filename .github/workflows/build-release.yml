@@ -1,0 +1,110 @@
+# 自动打包发布：打 tag（v*）触发三平台构建 CLI + 桌面安装包，发布到 GitHub Release。
+# 手动触发：Actions → build-release → Run workflow（可选输入 CLI_ONLY）。
+#
+# 安全：内网敏感文件（src/skills/ssh-access/assets/*.json、xihe-store 等）
+# 已在 .gitignore 排除，CI 检出不会包含它们。
+name: build-release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      cli_only:
+        description: "只打 CLI，不打包桌面客户端"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: "build (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # monaco-editor 打包内存占用高（本机实测 ~2GB+）
+      NODE_OPTIONS: "--max-old-space-size=8192"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build CLI + desktop (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ "${{ github.event.inputs.cli_only }}" = "true" ]; then
+            bash scripts/build-cli.sh
+          else
+            bash scripts/build-desktop.sh
+          fi
+
+      - name: Build CLI + desktop (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          if ($env:CLI_ONLY -eq "true") { .\scripts\build-cli.ps1 }
+          else { .\scripts\build-desktop.ps1 }
+        env:
+          CLI_ONLY: ${{ github.event.inputs.cli_only }}
+
+      # --- 收集产物 ---
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xihe-cli-${{ matrix.os }}
+          path: |
+            dist/cli/xihe/**
+          if-no-files-found: error
+
+      - name: Upload desktop artifacts
+        if: github.event.inputs.cli_only != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xihe-desktop-${{ matrix.os }}
+          path: |
+            desktop/release/*.AppImage
+            desktop/release/*.deb
+            desktop/release/*.dmg
+            desktop/release/*.exe
+            desktop/release/*.zip
+          if-no-files-found: ignore
+
+  release:
+    name: "Publish GitHub Release"
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package artifacts into archives
+        run: |
+          cd artifacts
+          for d in */; do
+            name="${d%/}"
+            (cd "$d" && zip -qr "../${name}.zip" .)
+            rm -rf "$d"
+          done
+          ls -lh
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.zip
+          generate_release_notes: true
