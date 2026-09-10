@@ -4,13 +4,20 @@
 # 产物：desktop/release/*.AppImage / *.deb（linux）；*.dmg（mac）。
 #
 # 用法：
-#   bash scripts/build-desktop.sh          # 默认构建 Linux 包
-#   bash scripts/build-desktop.sh mac      # 构建 macOS 包（需在 macOS 上执行）
+#   bash scripts/build-desktop.sh          # 自动检测系统（Linux→linux 包；macOS→dmg）
+#   bash scripts/build-desktop.sh linux    # 强制构建 Linux 包
+#   bash scripts/build-desktop.sh mac      # 强制构建 macOS 包（需在 macOS 上执行）
 #   XIHE_SKIP_CLI=1 bash scripts/build-desktop.sh   # 跳过 CLI 构建，仅打桌面（适合只改前端）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET="${1:-linux}"
+TARGET="${1:-}"
+if [ -z "$TARGET" ]; then
+  case "$(uname -s)" in
+    Darwin*) TARGET="mac" ;;
+    *) TARGET="linux" ;;
+  esac
+fi
 cd "$ROOT"
 
 # ① CLI 打包并内嵌

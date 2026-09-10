@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-22.04, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       # monaco-editor 打包内存占用高（本机实测 ~2GB+）
