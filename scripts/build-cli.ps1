@@ -1,5 +1,5 @@
 ﻿# 打包 xihe CLI 为 Windows 独立可执行文件（PyInstaller onedir 模式）。
-# 产物：dist\cli\xihe.exe
+# 产物：dist\cli\xihe\xihe.exe（onedir 目录）
 #
 # 用法：在 PowerShell 中  .\scripts\build-cli.ps1
 # 前置：已安装 Python 3.10+（在 PATH 中）；网络可访问 PyPI。
@@ -62,9 +62,9 @@ Remove-Item -Recurse -Force dist\cli, build\pyinstaller, build\xihe.spec -ErrorA
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller 打包失败 (exit=$LASTEXITCODE)" }
 
 Write-Host "[3/4] 冒烟验证"
-$Bin = Join-Path $Root "dist\cli\xihe.exe"
+$Bin = Join-Path $Root "dist\cli\xihe\xihe.exe"
 if (-not (Test-Path $Bin)) { throw "打包产物不存在: $Bin" }
 & $Bin --help *> $null
 if ($LASTEXITCODE -ne 0) { throw "打包产物无法执行" }
 
-Write-Host "[4/4] 完成: $Root\dist\cli\xihe.exe"
+Write-Host "[4/4] 完成: $Root\dist\cli\xihe\xihe.exe"
