@@ -80,6 +80,30 @@ export interface ServeSupervisorOptions {
   onStatus?: (s: XiheStatus) => void
 }
 
+/**
+ * Resolve the `xihe serve` binary the desktop supervises.
+ * Priority: explicit opts.bin / XIHE_BIN → bundled CLI shipped inside the
+ * packaged app (extraResources → <resources>/bin/xihe/xihe[.exe]) → PATH `xihe`.
+ * The bundled CLI makes the packaged desktop self-contained: end users get a
+ * working agent without pre-installing the Python package.
+ */
+function resolveXiheBin(explicit?: string): string {
+  if (explicit) return explicit
+  const exe = process.platform === 'win32' ? 'xihe.exe' : 'xihe'
+  const bundled = join(
+    (process as unknown as { resourcesPath?: string }).resourcesPath ?? '',
+    'bin',
+    'xihe',
+    exe,
+  )
+  try {
+    if (bundled && statSync(bundled).isFile()) return bundled
+  } catch {
+    /* dev mode / no bundled CLI — fall through to PATH */
+  }
+  return 'xihe'
+}
+
 /** Where spawn stderr/stdout lands (~/.xihe-desktop/serve.log). The
  *  not_found status card offers to open it for the cmd.exe error text. */
 export function serveLogPath(): string {
@@ -104,7 +128,7 @@ export class ServeSupervisor {
   constructor(opts: ServeSupervisorOptions = {}) {
     this.host = opts.host ?? '127.0.0.1'
     this.port = opts.port ?? 7788
-    this.bin = opts.bin ?? process.env.XIHE_BIN ?? 'xihe'
+    this.bin = resolveXiheBin(opts.bin ?? process.env.XIHE_BIN)
     this.onStatus = opts.onStatus ?? (() => {})
     this.status = {
       state: 'starting',

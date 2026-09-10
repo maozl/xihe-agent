@@ -23,3 +23,9 @@ __pycache__/
 
 # --- 内网敏感信息（推送前必须排除） ---
 /src/skills/ssh-access/assets/*.json
+
+# --- build artifacts ---
+/build/
+/dist/
+/desktop/release/
+/desktop/resources/bin/

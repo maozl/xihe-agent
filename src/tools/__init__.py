@@ -91,6 +91,11 @@ def load_all_tools():
     registry.register() at import time. Idempotent: called from both
     SharedContext and XiheAgent.__init__, but only the first call does work.
 
+    PyInstaller frozen builds: the .py sources live inside the PYZ archive
+    (no physical files in the tools/ dir), so the directory scan finds
+    nothing — fall back to the explicit module list below. Keep it in sync
+    when adding/renaming tool modules.
+
     Static registration only — no network, no dynamic tools. MCP discovery
     (``start_mcp_discovery``) and specialist registration are process-level
     policy owned by the composition root (SharedContext), not this function.
@@ -100,10 +105,26 @@ def load_all_tools():
         return
     _TOOLS_LOADED = True
     tools_dir = Path(__file__).parent
-    for py_file in sorted(tools_dir.glob("*.py")):
-        name = py_file.stem
-        if name.startswith("_") or name == "__init__":
-            continue
+    py_files = sorted(tools_dir.glob("*.py"))
+    if py_files:
+        names = [
+            p.stem for p in py_files
+            if not p.stem.startswith("_") and p.stem != "__init__"
+        ]
+    else:
+        # Frozen (PyInstaller) environment: physical sources absent → explicit list.
+        names = [
+            "browser_tool", "clarify_tool", "computer_tool", "cronjob_tools",
+            "delegate_tool", "execute_code", "external_agent_tool", "file_tools",
+            "http_tool", "image_generation_tool", "kbs_tool", "maven_tool",
+            "mcp_tool", "memory_tool", "model_info_tool", "node_version_tool",
+            "ocr_tool", "process_tool", "request_tools_tool", "sandbox_tool",
+            "send_message_tool", "session_search_tool", "skills_tool",
+            "skill_manager_tool", "specialist_agent_tool", "ssh_tool",
+            "terminal", "todo_tool", "tts_tool", "vision_tools",
+            "web_record_tool", "web_tools",
+        ]
+    for name in names:
         try:
             importlib.import_module(f"tools.{name}")
         except Exception as e:

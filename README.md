@@ -309,6 +309,24 @@ Agent-loop invariants worth knowing before contributing: read-only tool calls ru
 pytest
 ```
 
+## Build & package
+
+Ship artifacts end users can run directly (no Python install needed):
+
+| Artifact | Command | Platform |
+|---|---|---|
+| Standalone CLI (PyInstaller onedir, bundled skills/agents) | `bash scripts/build-cli.sh` | Linux/macOS |
+| Standalone CLI | `.\scripts\build-cli.ps1` | Windows (**must run on Windows**) |
+| Desktop installer (AppImage/deb/dmg, embeds the CLI — self-contained) | `bash scripts/build-desktop.sh [mac]` | Linux/macOS |
+| Desktop installer (NSIS setup + portable exe, embeds the CLI) | `.\scripts\build-desktop.ps1` | Windows |
+
+Notes:
+
+- The desktop package **embeds** a standalone xihe CLI (`resources/bin/xihe/`); the main process prefers the bundled CLI to launch `serve`, so end users get a working agent out of the box. `XIHE_BIN` still overrides it for dev/advanced use.
+- PyInstaller and the node-pty native module **cannot be cross-compiled** — Windows installers must be built on Windows.
+- The base CLI excludes paddleocr/paddlepaddle (optional lazy-loaded offline OCR with multi-GB models); `pip install paddleocr paddlepaddle` on the target machine when needed. The playwright driver ships in the bundle; browser binaries still require `playwright install chromium`.
+- Build output goes to `dist/` and `desktop/release/` (both gitignored).
+
 ## License
 
 [MPL-2.0](LICENSE) — file-level copyleft: free to use, modify, and distribute, including as part of a larger proprietary work; only files you modify must remain open under MPL-2.0.

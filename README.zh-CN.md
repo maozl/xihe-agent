@@ -308,6 +308,24 @@ tests/             pytest 套件 —— L0 纯函数、L1 工具(mock IO)、
 pytest
 ```
 
+## 打包分发
+
+一键产出**用户可直接使用的安装包**（无需预装 Python）：
+
+| 产物 | 命令 | 平台 |
+|---|---|---|
+| CLI 独立可执行（PyInstaller onedir，含内置 skills/agents） | `bash scripts/build-cli.sh` | Linux/macOS |
+| CLI 独立可执行 | `.\scripts\build-cli.ps1` | Windows（**需在 Windows 上跑**） |
+| 桌面安装包（AppImage/deb/dmg，内嵌 CLI，自包含） | `bash scripts/build-desktop.sh [mac]` | Linux/macOS |
+| 桌面安装包（NSIS 安装版 + portable 免安装版，内嵌 CLI） | `.\scripts\build-desktop.ps1` | Windows |
+
+说明：
+
+- 桌面安装包**内嵌**独立打包的 xihe CLI（`resources/bin/xihe/`），main 进程优先加载内置 CLI 启动 `serve`，终端用户装完即用；`XIHE_BIN` 环境变量可覆盖指向自定义可执行文件。
+- PyInstaller 与 node-pty 原生模块**均不支持交叉编译**，Windows 安装包必须在 Windows 上构建。
+- 基础 CLI 包**不含** paddleocr/paddlepaddle（可选离线 OCR，懒加载 + 模型文件数 GB）；需要时在目标机 `pip install paddleocr paddlepaddle` 即可，不影响主功能。playwright 驱动随包，浏览器二进制需 `playwright install chromium` 安装。
+- 构建产物输出到 `dist/`、`desktop/release/`，均已加入 `.gitignore`。
+
 ## 许可证
 
 [MPL-2.0](LICENSE) —— 文件级 copyleft:可自由使用、修改、分发,包括并入更大的闭源作品;只有你修改过的文件必须继续以 MPL-2.0 开源。

@@ -21,7 +21,35 @@ npm install
 npm run dev      # 启动开发模式，弹出窗口
 ```
 
-类型检查 / 打 bundle：`npm run build`（electron-vite 产出 main / preload / renderer 三 bundle）。打成可安装包（electron-builder）的配置待补。
+类型检查 / 打 bundle：`npm run build`（electron-vite 产出 main / preload / renderer 三 bundle）。
+
+## 打包分发（electron-builder）
+
+打成可安装包：**桌面安装包内嵌独立打包的 xihe CLI**（PyInstaller onedir，
+随包放在 `resources/bin/xihe/`），main 进程优先用内置 CLI 启动 serve ——
+终端用户**无需预装 Python / pip install**，装好即用；仍可通过 `XIHE_BIN`
+环境变量指向自定义可执行文件（开发 / 特殊场景）。
+
+```bash
+# 一键打包（Linux AppImage + deb；macOS 传 mac）：先打 CLI → 内嵌 → electron-builder
+bash scripts/build-desktop.sh            # Linux
+bash scripts/build-desktop.sh mac        # macOS（需在 macOS 上执行）
+
+# 仅打桌面（跳过 CLI，XIHE_SKIP_CLI=1）：
+XIHE_SKIP_CLI=1 bash scripts/build-desktop.sh
+```
+
+Windows（PowerShell，**必须在 Windows 上执行** —— PyInstaller 与 node-pty
+原生模块都不能交叉编译）：
+
+```powershell
+.\scripts\build-desktop.ps1              # NSIS 安装版 + portable 免安装版
+$env:XIHE_SKIP_CLI=1; .\scripts\build-desktop.ps1
+```
+
+产物：`desktop/release/`（`.AppImage` / `.deb` / `.dmg` / `Setup .exe` / portable `.exe`）。
+首次构建需联网下载 electron / electron-builder 工具链；`package-lock.json`
+使用公共 npm 镜像（npmmirror），脱离内网环境同样可安装。
 
 ## 架构要点
 
