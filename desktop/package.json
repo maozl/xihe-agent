@@ -1,6 +1,6 @@
 {
   "name": "xihe-desktop",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "xihe desktop — control plane for xihe agents",
   "main": "./out/main/index.js",
   "author": {
