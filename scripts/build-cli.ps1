@@ -1,4 +1,4 @@
-# 打包 xihe CLI 为 Windows 独立可执行文件（PyInstaller onedir 模式）。
+﻿# 打包 xihe CLI 为 Windows 独立可执行文件（PyInstaller onedir 模式）。
 # 产物：dist\cli\xihe.exe
 #
 # 用法：在 PowerShell 中  .\scripts\build-cli.ps1

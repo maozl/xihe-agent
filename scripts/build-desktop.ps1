@@ -1,4 +1,4 @@
-# 构建 xihe 桌面安装包（Windows）。
+﻿# 构建 xihe 桌面安装包（Windows）。
 # 流程：① 运行 build-cli.ps1 打包 CLI → ② 内嵌到 desktop\resources\bin →
 #       ③ electron-builder 出 NSIS 安装包 + portable 免安装版。
 # 产物：desktop\release\xihe-agent Setup *.exe（安装版）、xihe-agent *.exe（便携版）。

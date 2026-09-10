@@ -54,7 +54,7 @@ jobs:
 
       - name: Build CLI + desktop (Windows)
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         run: |
           if ($env:CLI_ONLY -eq "true") { .\scripts\build-cli.ps1 }
           else { .\scripts\build-desktop.ps1 }
