@@ -64,7 +64,7 @@ if ($LASTEXITCODE -ne 0) { throw "PyInstaller 打包失败 (exit=$LASTEXITCODE)"
 Write-Host "[3/4] 冒烟验证"
 $Bin = Join-Path $Root "dist\cli\xihe\xihe.exe"
 if (-not (Test-Path $Bin)) { throw "打包产物不存在: $Bin" }
-& $Bin --help *> $null
-if ($LASTEXITCODE -ne 0) { throw "打包产物无法执行" }
+& $Bin --version
+if ($LASTEXITCODE -ne 0) { throw "打包产物无法执行 (exit=$LASTEXITCODE)" }
 
 Write-Host "[4/4] 完成: $Root\dist\cli\xihe\xihe.exe"
